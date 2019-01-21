@@ -8,8 +8,6 @@ import static org.junit.Assert.assertEquals;
 
 public class FileManagerTest {
 
-    private FileManager fileManager = new FileManager();
-
     @Test
     public void testCountFiles() throws IOException {
 
@@ -17,20 +15,20 @@ public class FileManagerTest {
         String path = "resources/from";
 
         //when
-        int count = fileManager.countFiles(path);
+        int count = FileManager.countFiles(path);
 
         //then
         assertEquals(count, 2);
     }
 
     @Test
-    public void testCountDirs() {
+    public void testCountDirs()throws IOException {
 
         //prepare
         String path = "resources/from";
 
         //when
-        int count = fileManager.countDirs(path);
+        int count = FileManager.countDirs(path);
 
         //then
         assertEquals(count, 2);
@@ -44,33 +42,32 @@ public class FileManagerTest {
         String to = "resources/to";
 
         //when
-        fileManager.copy(from, to);
+        FileManager.copy(from, to);
 
         //then
-        assertEquals(fileManager.countFiles(to), 2);
-        assertEquals(fileManager.countDirs(to), 2);
+        assertEquals(FileManager.countFiles(to), 2);
+        assertEquals(FileManager.countDirs(to), 2);
     }
+
 
     @Test
     public void testMove() throws IOException {
 
         //prepare
-        String fromFile = "resources/from/file.txt";
-        String toFile = "resources/to/file.txt";
-        String fromDir = "resources/from/directory";
-        String toDir = "resources/to/directory";
-        String path = "resources/from";
+        String fromFile = "resources/to/file.txt";
+        String toFile = "resources/from";
+        String fromDir = "resources/to/directory";
+        String toDir = "resources/from/directory";
+        String path = "resources/to";
 
         //when
-        fileManager.move(fromFile, toFile);
-        fileManager.move(fromDir, toDir);
+        FileManager.move(fromFile, toFile);
+        FileManager.move(fromDir, toDir);
+
 
         //then
-        assertEquals(fileManager.countFiles(path), 0);
-        assertEquals(fileManager.countDirs(path), 0);
+        assertEquals(FileManager.countFiles(path), 0);
+        assertEquals(FileManager.countDirs(path), 0);
 
-        //return
-        fileManager.copy(toFile, fromFile);
-        fileManager.copy(toDir, fromDir);
     }
 }

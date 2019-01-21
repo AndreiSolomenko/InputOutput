@@ -19,54 +19,51 @@ public class FileAnalyzer {
         String path = args[0];
         String word = args[1];
 
-        System.out.println(duplicateCounter(path, word));
+        System.out.println(countDuplicates(path, word));
         printSentences(path, word);
 
     }
 
-    static int duplicateCounter(String path, String word) throws IOException {
+    static int countDuplicates(String path, String word) throws IOException {
 
-        FileInputStream inputStream = new FileInputStream(path);
-
-        byte[] text = new byte[inputStream.available()];
-        inputStream.read(text);
-        inputStream.close();
-        String[] lines = new String(text).split(" ");
-
+        byte[] text;
+        try (FileInputStream inputStream = new FileInputStream(path)) {
+            text = new byte[inputStream.available()];
+            inputStream.read(text);
+        }
+        String[] words = new String(text).split(" ");
         int counter = 0;
-        for (String s : lines) {
-            String[] words = s.split(" ");
-            for (String w : words) {
-                if (w.equalsIgnoreCase(word)) {
-                    counter++;
-                }
+        for (String wd : words) {
+            if (wd.equalsIgnoreCase(word)) {
+                counter++;
             }
         }
         return counter;
     }
 
-    static void printSentences(String path, String word) throws IOException {
+    static private void printSentences(String path, String word) throws IOException {
 
-        for (String Sentence : findSentences(path, word)) {
-            if (Sentence != null) {
-                System.out.println(Sentence);
+        for (String sentence : findSentences(path, word)) {
+            if (sentence != null) {
+                System.out.println(sentence);
             }
         }
     }
 
     static String[] findSentences(String path, String word) throws IOException {
 
-        FileInputStream inputStream = new FileInputStream(path);
-        byte[] text = new byte[inputStream.available()];
-        inputStream.read(text);
-        inputStream.close();
-        String[] lines = new String(text).split("\\.|\\?|\\!");
-        String[] temp = new String[lines.length];
-        for (int i = 0 ; i < lines.length ; i++) {
-            String[] words = lines[i].split(" ");
-            for (String w : words) {
-                if (w.equalsIgnoreCase(word)) {
-                    temp[i] = lines[i];
+        byte[] text;
+        try (FileInputStream inputStream = new FileInputStream(path)) {
+            text = new byte[inputStream.available()];
+            inputStream.read(text);
+        }
+        String[] sentences = new String(text).split("\\.|\\?|\\!");
+        String[] temp = new String[sentences.length];
+        for (int i = 0 ; i < sentences.length ; i++) {
+            String[] words = sentences[i].split(" ");
+            for (String wd : words) {
+                if (wd.equalsIgnoreCase(word)) {
+                    temp[i] = sentences[i];
                 }
             }
         }

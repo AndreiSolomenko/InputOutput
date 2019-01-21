@@ -12,7 +12,7 @@ public class FileAnalyzerTest {
     public void testDuplicateCounter() throws IOException {
 
         //when
-        int count = FileAnalyzer.duplicateCounter("resources/story.txt", "duck");
+        int count = FileAnalyzer.countDuplicates("resources/story.txt", "duck");
 
         //then
         assertEquals(count, 17);
