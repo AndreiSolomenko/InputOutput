@@ -38,17 +38,18 @@ public class FileManagerTest {
     public void testCopyFilesAndDirs() throws IOException {
 
         //prepare
-        String from = "resources/from";
+        String fileFrom = "resources/from/file.txt";
+        String dirFrom = "resources/from/directory";
         String to = "resources/to";
 
         //when
-        FileManager.copy(from, to);
+        FileManager.copy(fileFrom, to);
+        FileManager.copy(dirFrom, to);
 
         //then
         assertEquals(FileManager.countFiles(to), 2);
         assertEquals(FileManager.countDirs(to), 2);
     }
-
 
     @Test
     public void testMove() throws IOException {
@@ -57,13 +58,11 @@ public class FileManagerTest {
         String fromFile = "resources/to/file.txt";
         String toFile = "resources/from";
         String fromDir = "resources/to/directory";
-        String toDir = "resources/from/directory";
         String path = "resources/to";
 
         //when
         FileManager.move(fromFile, toFile);
-        FileManager.move(fromDir, toDir);
-
+        FileManager.move(fromDir, toFile);
 
         //then
         assertEquals(FileManager.countFiles(path), 0);

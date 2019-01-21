@@ -46,48 +46,70 @@ public class FileManager {
     public static void copy(String from, String to) throws IOException {
 
         File pathFrom = new File(from);
+        validateExists(pathFrom);
+        File pathTo = new File(to);
+        validateExists(pathTo);
+
+        File dirTo;
+        if(pathFrom.isDirectory()){
+            dirTo = new File(pathTo, pathFrom.getName());
+            dirTo.mkdir();
+        }else {
+            dirTo = pathTo;
+        }
+
+        copyAll(pathFrom.getPath(), dirTo.getPath());
+    }
+
+    public static void copyAll(String from, String to) throws IOException {
+
+        File pathFrom = new File(from);
         File pathTo = new File(to);
 
-        if (pathFrom.isDirectory()){
+        if (pathFrom.isDirectory()) {
             String[] files = pathFrom.list();
             for (String file : files){
                 File fileFrom = new File(pathFrom, file);
                 File fileTo = new File(pathTo, file);
-                if (fileFrom.isDirectory()){
+                if (fileFrom.isDirectory()) {
                     fileTo.mkdir();
                 }
-                copy(fileFrom.getPath(), fileTo.getPath());
+                copyAll(fileFrom.getPath(), fileTo.getPath());
             }
-        } else{
-            if(pathFrom.isFile() && pathTo.isDirectory()){
-                try (FileInputStream fileFrom = new FileInputStream(pathFrom);
-                     FileOutputStream fileTo = new FileOutputStream(pathTo +"/" +pathFrom.getName())){
+        } else {
+            if (pathFrom.isFile() && pathTo.isDirectory()) {
+                try (FileInputStream fileFrom = new FileInputStream(pathFrom) ;
+                     FileOutputStream fileTo = new FileOutputStream(pathTo + "/" + pathFrom.getName())) {
                     int read = fileFrom.read();
                     while (read != - 1) {
                         read = fileFrom.read();
                         fileTo.write(read);
                     }
                 }
-            }else {
-               try (FileInputStream fileFrom = new FileInputStream(pathFrom);
-                    FileOutputStream fileTo = new FileOutputStream(pathTo)){
-                   int read = fileFrom.read();
-                   while (read != - 1) {
-                       read = fileFrom.read();
-                       fileTo.write(read);
+            } else {
+                try (FileInputStream fileFrom = new FileInputStream(pathFrom) ;
+                     FileOutputStream fileTo = new FileOutputStream(pathTo)) {
+                    int read = fileFrom.read();
+                    while (read != - 1) {
+                        read = fileFrom.read();
+                        fileTo.write(read);
                     }
                 }
             }
         }
     }
 
+
     // метод по перемещению папок и файлов.
     // Параметр from - путь к файлу или папке, параметр to - путь к папке куда будет производиться перемещение.
     public static void move(String from, String to) throws IOException {
 
-        copy(from, to);
         File pathFrom = new File(from);
         validateExists(pathFrom);
+        File pathTo = new File((to));
+        validateExists(pathTo);
+
+        copy(pathFrom.getPath(), pathTo.getPath());
         do {
             delete(pathFrom);
         } while (pathFrom.exists());
@@ -113,7 +135,7 @@ public class FileManager {
 
     private static void validatePath(File root) throws IOException {
         if (! root.exists()) {
-            throw new IOException("Directory does not exist.");
+            throw new IOException("Directory or file " +root.getName() + " does not exist.");
         } else if (! root.isDirectory()) {
             throw new IOException("Path not to directory.");
         }
@@ -121,7 +143,7 @@ public class FileManager {
 
     private static void validateExists(File root) throws IOException {
         if (! root.exists()) {
-            throw new IOException("Directory does not exist.");
+            throw new IOException("Directory or file " +root.getName() + " does not exist.");
         }
     }
 }
