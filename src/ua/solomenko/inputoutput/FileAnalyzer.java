@@ -16,23 +16,29 @@ public class FileAnalyzer {
 
     public static void main(String[] args) throws IOException {
 
-        String path = args[0];
-        String word = args[1];
+        String path = "resources/story.txt";
+        String word = "duck";
 
-        System.out.println(countDuplicates(path, word));
+        if (args.length > 0) {
+            path = args[0];
+            word = args[1];
+        }
+
+        System.out.println("Amount of coincidences the search word in the text: " +countDuplicates(path, word));
         printSentences(path, word);
 
     }
 
     static int countDuplicates(String path, String word) throws IOException {
-
-        byte[] text;
-        try (FileInputStream inputStream = new FileInputStream(path)) {
-            text = new byte[inputStream.available()];
-            inputStream.read(text);
+        validatePath(path);
+        File root = new File(path);
+        char[] text;
+        try (FileReader file = new FileReader(path)) {
+            text = new char[(int) root.length()];
+            file.read(text);
         }
-        String[] words = new String(text).split(" ");
         int counter = 0;
+        String[] words = new String(text).split(" ");
         for (String wd : words) {
             if (wd.equalsIgnoreCase(word)) {
                 counter++;
@@ -41,32 +47,41 @@ public class FileAnalyzer {
         return counter;
     }
 
-    static private void printSentences(String path, String word) throws IOException {
-
-        for (String sentence : findSentences(path, word)) {
-            if (sentence != null) {
+    static void printSentences(String path, String word) throws IOException {
+        validatePath(path);
+        String[] sentences = findSentences(path, word);
+        for (String sentence : sentences){
+            if (sentence != null){
                 System.out.println(sentence);
             }
         }
     }
 
     static String[] findSentences(String path, String word) throws IOException {
-
-        byte[] text;
-        try (FileInputStream inputStream = new FileInputStream(path)) {
-            text = new byte[inputStream.available()];
-            inputStream.read(text);
+        validatePath(path);
+        File fileLength = new File(path);
+        char[] text;
+        try (FileReader file = new FileReader(path)) {
+            text = new char[(int) fileLength.length()];
+            file.read(text);
         }
         String[] sentences = new String(text).split("\\.|\\?|\\!");
         String[] temp = new String[sentences.length];
-        for (int i = 0 ; i < sentences.length ; i++) {
+        for (int i = 0; i<sentences.length; i++){
             String[] words = sentences[i].split(" ");
-            for (String wd : words) {
-                if (wd.equalsIgnoreCase(word)) {
+            for (String wd : words){
+                if(wd.equalsIgnoreCase(word)){
                     temp[i] = sentences[i];
                 }
             }
         }
         return temp;
+    }
+
+    static private void validatePath(String path) throws IOException{
+        File file = new File(path);
+        if(!file.exists()){
+            throw new IOException("File does not exist.");
+        }
     }
 }

@@ -6,37 +6,41 @@ public class FileManager {
 
     // принимает путь к папке, возвращает количество файлов в папке и всех подпапках по пути
     public static int countFiles(String path) throws IOException {
-
-        int counter = 0;
+        validatePath(path);
         File root = new File(path);
-        validatePath(root);
-
-        String[] files = root.list();
-        for (String file : files) {
-            File temp = new File(root, file);
-            if (temp.isDirectory()) {
-                counter += countFiles(temp.getPath());
-            } else {
-                counter++;
+        int counter = 0;
+        if(root.isDirectory()){
+            String[] files = root.list();
+            for(String file : files){
+                File temp = new File(path, file);
+                if(temp.isDirectory()){
+                    counter +=countFiles(temp.getPath());
+                }else {
+                    counter++;
+                }
             }
+        }else {
+            throw new IOException("Path is not to directory.");
         }
         return counter;
     }
 
     // принимает путь к папке, возвращает количество папок в папке и всех подпапках по пути
     public static int countDirs(String path) throws IOException {
-
-        int counter = 0;
+        validatePath(path);
         File root = new File(path);
-        validatePath(root);
-
-        String[] files = root.list();
-        for (int i = 0 ; i < files.length ; i++) {
-            File temp = new File(root, files[i]);
-            if (temp.isDirectory()) {
-                counter++;
-                counter += countDirs(temp.getPath());
+        int counter = 0;
+        if(root.isDirectory()){
+            String[] files = root.list();
+            for(String file : files){
+                File temp = new File(path, file);
+                if(temp.isDirectory()){
+                    counter++;
+                    counter +=countDirs(temp.getPath());
+                }
             }
+        }else {
+            throw new IOException("Path is not to directory.");
         }
         return counter;
     }
@@ -44,78 +48,81 @@ public class FileManager {
     // метод по копированию папок и файлов.
     // Параметр from - путь к файлу или папке, параметр to - путь к папке куда будет производиться копирование.
     public static void copy(String from, String to) throws IOException {
-
+        validatePath(from);
+        validatePath(to);
+        validateIsDir(to);
         File pathFrom = new File(from);
-        validateExists(pathFrom);
-        File pathTo = new File(to);
-        validateExists(pathTo);
-
-        File dirTo;
-        if(pathFrom.isDirectory()){
-            dirTo = new File(pathTo, pathFrom.getName());
-            dirTo.mkdir();
+        if (pathFrom.isDirectory()){
+            File pathTo = new File(to, pathFrom.getName());
+            pathTo.mkdir();
+            copyContent(pathFrom.getPath(), pathTo.getPath());
         }else {
-            dirTo = pathTo;
+            try (FileInputStream fileFrom = new FileInputStream(from);
+                 FileOutputStream fileTo = new FileOutputStream(to +"/" +pathFrom.getName())){
+                int read;
+                while ((read = fileFrom.read()) != - 1) {
+                    fileTo.write(read);
+                }
+            }
         }
-
-        copyAll(pathFrom.getPath(), dirTo.getPath());
     }
 
-    public static void copyAll(String from, String to) throws IOException {
+    // метод по перемещению папок и файлов.
+    // Параметр from - путь к файлу или папке, параметр to - путь к папке куда будет производиться перемещение.
+    public static void move(String from, String to) throws IOException {
+        validatePath(from);
+        validatePath(to);
+        validateIsDir(to);
+        File pathFrom = new File(from);
+        if (pathFrom.isDirectory()){
+            File pathTo = new File(to, pathFrom.getName());
+            pathTo.mkdir();
+            String[] files = pathFrom.list();
+            if(files.length == 0){
+                pathFrom.delete();
+            }else {
+                copyContent(pathFrom.getPath(), pathTo.getPath());
+                do{
+                    delete(pathFrom);
+                }while (pathFrom.exists());
+            }
+        }else {
+            try (FileInputStream fileFrom = new FileInputStream(from);
+                 FileOutputStream fileTo = new FileOutputStream(to +"/" +pathFrom.getName())){
+                int read;
+                while ((read = fileFrom.read()) != - 1) {
+                    fileTo.write(read);
+                    pathFrom.delete();
+                }
+            }
+        }
+    }
 
+    private static void copyContent(String from, String to) throws IOException {
         File pathFrom = new File(from);
         File pathTo = new File(to);
-
-        if (pathFrom.isDirectory()) {
+        if(pathFrom.isDirectory()){
             String[] files = pathFrom.list();
-            for (String file : files){
+            for (String file : files) {
                 File fileFrom = new File(pathFrom, file);
                 File fileTo = new File(pathTo, file);
                 if (fileFrom.isDirectory()) {
                     fileTo.mkdir();
                 }
-                copyAll(fileFrom.getPath(), fileTo.getPath());
+                copyContent(fileFrom.getPath(), fileTo.getPath());
             }
-        } else {
-            if (pathFrom.isFile() && pathTo.isDirectory()) {
-                try (FileInputStream fileFrom = new FileInputStream(pathFrom) ;
-                     FileOutputStream fileTo = new FileOutputStream(pathTo + "/" + pathFrom.getName())) {
-                    int read = fileFrom.read();
-                    while (read != - 1) {
-                        read = fileFrom.read();
-                        fileTo.write(read);
-                    }
-                }
-            } else {
-                try (FileInputStream fileFrom = new FileInputStream(pathFrom) ;
-                     FileOutputStream fileTo = new FileOutputStream(pathTo)) {
-                    int read = fileFrom.read();
-                    while (read != - 1) {
-                        read = fileFrom.read();
-                        fileTo.write(read);
-                    }
+        }else {
+            try (FileInputStream fileFrom = new FileInputStream(pathFrom) ;
+                 FileOutputStream fileTo = new FileOutputStream(pathTo)) {
+                int read;
+                while ((read = fileFrom.read()) != - 1) {
+                    fileTo.write(read);
                 }
             }
         }
     }
 
-
-    // метод по перемещению папок и файлов.
-    // Параметр from - путь к файлу или папке, параметр to - путь к папке куда будет производиться перемещение.
-    public static void move(String from, String to) throws IOException {
-
-        File pathFrom = new File(from);
-        validateExists(pathFrom);
-        File pathTo = new File((to));
-        validateExists(pathTo);
-
-        copy(pathFrom.getPath(), pathTo.getPath());
-        do {
-            delete(pathFrom);
-        } while (pathFrom.exists());
-    }
-
-    static void delete(File pathFrom) {
+    private static void delete(File pathFrom) {
 
         if (pathFrom.isFile()) {
             pathFrom.delete();
@@ -133,17 +140,17 @@ public class FileManager {
         }
     }
 
-    private static void validatePath(File root) throws IOException {
-        if (! root.exists()) {
-            throw new IOException("Directory or file " +root.getName() + " does not exist.");
-        } else if (! root.isDirectory()) {
-            throw new IOException("Path not to directory.");
+    private static void validatePath(String path) throws IOException{
+        File file = new File(path);
+        if(!file.exists()){
+            throw new IOException("File does not exist.");
         }
     }
 
-    private static void validateExists(File root) throws IOException {
-        if (! root.exists()) {
-            throw new IOException("Directory or file " +root.getName() + " does not exist.");
+    private static void validateIsDir(String path) throws IOException{
+        File file = new File(path);
+        if(!file.isDirectory()){
+            throw new IOException("Path is not to directory.");
         }
     }
 }
